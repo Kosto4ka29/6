@@ -1,39 +1,32 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-redeclare */
 'use strict';
 
-const titleClickHandler = function(event){
+// Obsługa kliknięć w tytuły artykułów
+const titleClickHandler = function(event) {
   event.preventDefault();
-  const clickedElement=this;
+  const clickedElement = this;
 
-
-  /* [DONE] remove class 'active' from all article links  */
-
-  const activeLinks=document.querySelectorAll('.titles a.active');
-
-  for (let activeLink of activeLinks){
+  // Usuwanie klasy 'active' ze wszystkich linków artykułów
+  const activeLinks = document.querySelectorAll('.titles a.active');
+  for (let activeLink of activeLinks) {
     activeLink.classList.remove('active');
   }
-  /*[DONE] add class 'active' to the clicked link */
-
+  
+  // Dodawanie klasy 'active' do klikniętego linku
   clickedElement.classList.add('active');
 
-  /* [DONE] remove class 'active' from all articles */
-
-  const activeArticles=document.querySelectorAll('.post.active');
-
-  for (let activeArticle of activeArticles){
+  // Usuwanie klasy 'active' ze wszystkich artykułów
+  const activeArticles = document.querySelectorAll('.post.active');
+  for (let activeArticle of activeArticles) {
     activeArticle.classList.remove('active');
   }
 
-  /* [DONE] get 'href' attribute from the clicked link */
+  // Pobieranie atrybutu 'href' z klikniętego linku
+  const articleSelector = clickedElement.getAttribute('href');
+  const targetArticle = document.querySelector(articleSelector);
 
-  const articleSelector= clickedElement.getAttribute('href');
-
-  /* [DONE] find the correct article using the selector (value of 'href' attribute) */
-
-  const targetArticle=document.querySelector(articleSelector);
-
-  /* [DONE] add class 'active' to the correct article */
-
+  // Dodawanie klasy 'active' do odpowiedniego artykułu
   targetArticle.classList.add('active');
 };
 
@@ -41,43 +34,109 @@ const optArticleSelector = '.post',
   optTitleSelector = '.post-title',
   optTitleListSelector = '.titles';
 
-function generateTitleLinks(){
+function generateTitleLinks(customSelector = '') {
+  // Znalezienie artykułów pasujących do selektora
+  const articles = document.querySelectorAll('.post' + customSelector);
 
-  /* remove contents of titleList */
+  // Czyszczenie listy tytułów
+  const titleList = document.querySelector('.titles');
+  titleList.innerHTML = '';
 
-  const titleList=document.querySelector(optTitleListSelector);
+  // Tworzenie zmiennej HTML
+  let html = '';
 
-  titleList.innerHTML='';
-
-  /* for each article */
-
-  const articles=document.querySelectorAll(optArticleSelector);
-
-  let html=' ';
-
-  for (let article of articles){
-    /* get the article id */
-
-    const articleId=article.getAttribute('id');
-
-    /* find the title element */
-    /* get the title from the title element */
-    const articleTitle =article.querySelector(optTitleSelector).innerHTML;
-
-    /* create HTML of the link */
-
-    const linkHTML='<li><a href="#'+ articleId+'"><span>'+ articleTitle+'</span></a></li>';
-
-    /* insert link into titleList */
-    html=html + linkHTML;
+  // Iteracja po artykułach
+  for (let article of articles) {
+    const articleId = article.getAttribute('id');
+    const articleTitle = article.querySelector(optTitleSelector).innerHTML;
+    const linkHTML = '<li><a href="#' + articleId + '"><span>' + articleTitle + '</span></a></li>';
+    html += linkHTML;
   }
 
-  titleList.innerHTML=html;
+  // Wstawianie wygenerowanego HTML do listy tytułów
+  titleList.innerHTML = html;
 
-  const links=document.querySelectorAll('.titles a');
-
-  for (let link of links){
+  // Dodawanie nasłuchiwania na kliknięcia
+  const links = titleList.querySelectorAll('a');
+  for (let link of links) {
     link.addEventListener('click', titleClickHandler);
   }
 }
+
 generateTitleLinks();
+
+// Obsługa kliknięć w tagi
+function tagClickHandler(event) {
+  event.preventDefault();
+  const clickedElement = this;
+  const href = clickedElement.getAttribute('href');
+  const tag = href.replace('#tag-', '');
+
+  const activeTags = document.querySelectorAll('a.active[href^="#tag-"]');
+  for (let activeTag of activeTags) {
+    activeTag.classList.remove('active');
+  }
+
+  const tagLinks = document.querySelectorAll('a[href="' + href + '"]');
+  for (let tagLink of tagLinks) {
+    tagLink.classList.add('active');
+  }
+
+  generateTitleLinks('[data-tags~="' + tag + '"]');
+}
+
+function addClickListenersToTags() {
+  const tagLinks = document.querySelectorAll('.post-tags a');
+  for (let tagLink of tagLinks) {
+    tagLink.addEventListener('click', tagClickHandler);
+  }
+}
+
+addClickListenersToTags();
+
+// Dodawanie autorów do artykułów
+const optArticleAuthorSelector = '.post-author';
+
+function generateAuthors() {
+  const articles = document.querySelectorAll(optArticleSelector);
+  
+  for (let article of articles) {
+    const authorWrapper = article.querySelector(optArticleAuthorSelector);
+    const author = article.getAttribute('data-author');
+    
+    if (authorWrapper) {
+      authorWrapper.innerHTML = `<a href="#author-${author}">${author}</a>`;
+    }
+  }
+}
+
+// Obsługa kliknięć w autorów
+function authorClickHandler(event) {
+  event.preventDefault();
+  const clickedElement = this;
+  const href = clickedElement.getAttribute('href');
+  const author = href.replace('#author-', '');
+
+  const activeAuthorLinks = document.querySelectorAll('a.active[href^="#author-"]');
+  for (let activeLink of activeAuthorLinks) {
+    activeLink.classList.remove('active');
+  }
+
+  const authorLinks = document.querySelectorAll('a[href="' + href + '"]');
+  for (let authorLink of authorLinks) {
+    authorLink.classList.add('active');
+  }
+
+  generateTitleLinks('[data-author="' + author + '"]');
+}
+
+function addClickListenersToAuthors() {
+  const authorLinks = document.querySelectorAll(optArticleAuthorSelector + ' a');
+  for (let authorLink of authorLinks) {
+    authorLink.addEventListener('click', authorClickHandler);
+  }
+}
+
+// Generowanie autorów i przypisywanie nasłuchiwaczy
+generateAuthors();
+addClickListenersToAuthors();
