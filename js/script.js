@@ -1,8 +1,8 @@
 'use strict';
 
 const titleClickHandler = function(event){
-    event.preventDefault();
-    const clickedElement=this;
+  event.preventDefault();
+  const clickedElement=this;
 
 
   /* [DONE] remove class 'active' from all article links  */
@@ -35,7 +35,7 @@ const titleClickHandler = function(event){
   /* [DONE] add class 'active' to the correct article */
 
   targetArticle.classList.add('active');
-}
+};
 
 const optArticleSelector = '.post',
   optTitleSelector = '.post-title',
@@ -58,19 +58,18 @@ function generateTitleLinks(){
   for (let article of articles){
     /* get the article id */
 
-    const articleId=article.getAttribute('id')
+    const articleId=article.getAttribute('id');
 
     /* find the title element */
     /* get the title from the title element */
-    const articleTitle =article.querySelector(optTitleSelector).innerHTML
+    const articleTitle =article.querySelector(optTitleSelector).innerHTML;
 
     /* create HTML of the link */
 
     const linkHTML='<li><a href="#'+ articleId+'"><span>'+ articleTitle+'</span></a></li>';
 
     /* insert link into titleList */
-
-    html=html + linkHTML
+    html=html + linkHTML;
   }
 
   titleList.innerHTML=html;
@@ -78,7 +77,7 @@ function generateTitleLinks(){
   const links=document.querySelectorAll('.titles a');
 
   for (let link of links){
-      link.addEventListener('click', titleClickHandler);
+    link.addEventListener('click', titleClickHandler);
   }
 }
 generateTitleLinks();
