@@ -10,26 +10,19 @@ function toggleActiveClass(elements, className) {
 }
 
 // Obsługa kliknięć w tytuły artykułów
-const titleClickHandler = function(event) {
+const titleClickHandler = function (event) {
   event.preventDefault();
   const clickedElement = this;
 
-  // Usuwanie klasy 'active' ze wszystkich linków artykułów
   const activeLinks = document.querySelectorAll('.titles a.active');
   toggleActiveClass(activeLinks, 'active');
-
-  // Dodawanie klasy 'active' do klikniętego linku
   clickedElement.classList.add('active');
 
-  // Usuwanie klasy 'active' ze wszystkich artykułów
   const activeArticles = document.querySelectorAll('.post.active');
   toggleActiveClass(activeArticles, 'active');
 
-  // Pobieranie atrybutu 'href' z klikniętego linku
   const articleSelector = clickedElement.getAttribute('href');
   const targetArticle = document.querySelector(articleSelector);
-
-  // Dodawanie klasy 'active' do odpowiedniego artykułu
   if (targetArticle) {
     targetArticle.classList.add('active');
   }
@@ -38,77 +31,151 @@ const titleClickHandler = function(event) {
 const optArticleSelector = '.post',
   optTitleSelector = '.post-title',
   optTitleListSelector = '.titles',
-  optArticleAuthorSelector = '.post-author'; // Nowa stała dla autorów
+  optArticleAuthorSelector = '.post-author';
 
-// Funkcja generująca tytuły artykułów
+// Generowanie listy tytułów artykułów
 function generateTitleLinks(customSelector = '') {
   const articles = document.querySelectorAll(optArticleSelector + customSelector);
   const titleList = document.querySelector(optTitleListSelector);
-  titleList.innerHTML = ''; // Czyszczenie listy tytułów
+  if (!titleList) {
+    console.error('Nie znaleziono elementu .titles');
+    return;
+  }
+  titleList.innerHTML = '';
 
-  let html = ''; // Zmienna do przechowywania HTML
+  let html = '';
 
   for (let article of articles) {
     const articleId = article.getAttribute('id');
-    const articleTitle = article.querySelector(optTitleSelector).innerHTML;
+    const articleTitle = article.querySelector(optTitleSelector)?.innerHTML;
+    if (!articleTitle) continue;
     const linkHTML = `<li><a href="#${articleId}"><span>${articleTitle}</span></a></li>`;
     html += linkHTML;
   }
 
-  titleList.innerHTML = html; // Wstawianie wygenerowanego HTML do listy tytułów
+  titleList.innerHTML = html;
 
-  // Dodawanie nasłuchiwania na kliknięcia
   const links = titleList.querySelectorAll('a');
   for (let link of links) {
     link.addEventListener('click', titleClickHandler);
   }
 }
 
-// Funkcja generująca tagi
+// Generowanie listy tagów
 function generateTags() {
-  let allTags = {}; // Obiekt do zliczania wystąpień tagów
-
-  const articles = document.querySelectorAll(optArticleSelector); // Znajdź wszystkie artykuły
+  let allTags = {};
+  const articles = document.querySelectorAll(optArticleSelector);
 
   for (let article of articles) {
-    const tagsWrapper = article.querySelector('.post-tags .list'); // Wrapper tagów
-    let html = ''; // Zmienna do przechowywania HTML
+    const tagsWrapper = article.querySelector('.post-tags .list');
+    if (!tagsWrapper) continue;
 
-    const articleTags = article.getAttribute('data-tags'); // Pobierz tagi
-    const articleTagsArray = articleTags.split(' '); // Podziel tagi na tablicę
+    let html = '';
+    const articleTags = article.getAttribute('data-tags');
+    if (!articleTags) continue;
+
+    const articleTagsArray = articleTags.split(' ');
 
     for (let tag of articleTagsArray) {
-      const tagLinkHTML = `<li><a href="#tag-${tag}">${tag}</a></li>`; // Generowanie HTML linku
-
-      // Zliczanie wystąpień tagów
-      if (!allTags[tag]) {
-        allTags[tag] = 1; // Jeśli tag nie istnieje, ustaw licznik na 1
-      } else {
-        allTags[tag]++; // Jeśli tag istnieje, zwiększ licznik
-      }
-
-      html += tagLinkHTML; // Dodaj link do HTML
+      const tagLinkHTML = `<li><a href="#tag-${tag}">${tag}</a></li> `;
+      allTags[tag] = (allTags[tag] || 0) + 1;
+      html += tagLinkHTML;
     }
 
-    tagsWrapper.innerHTML = html; // Wstaw HTML do wrappera tagów
+    tagsWrapper.innerHTML = html.trim();
   }
 
-  // Generowanie chmury tagów
   generateTagCloud(allTags);
 }
 
-// Funkcja generująca chmurę tagów
+// Generowanie chmury tagów
 function generateTagCloud(allTags) {
-  const tagList = document.querySelector('.tags.list'); // Znajdź listę tagów w prawej kolumnie
-  let allTagsHTML = ''; // Zmienna do przechowywania HTML chmury tagów
+  const tagList = document.querySelector('.tags.list');
+  if (!tagList) {
+    console.error('Nie znaleziono elementu .tags.list');
+    return;
+  }
+
+  let allTagsHTML = '';
 
   for (let tag in allTags) {
     const tagCount = allTags[tag];
-    const tagClass = calculateTagClass(tagCount); // Oblicz klasę rozmiaru tagu
-
-    // Generowanie HTML dla tagu
-    allTagsHTML += `<li><a href="#tag-${tag}" class="tag-size-${tagClass}">${tag} (${tagCount})</a></li>`;
+    const tagClass = calculateTagClass(tagCount);
+    allTagsHTML += `<li><a href="#tag-${tag}" class="tag-size-${tagClass}">${tag} (${tagCount})</a></li> `;
   }
 
-  tagList.innerHTML = allTagsHTML; // Wstaw HTML do listy tagów
+  tagList.innerHTML = allTagsHTML.trim();
 }
+
+// Obliczanie rozmiaru tagu
+function calculateTagClass(count) {
+  const maxCount = Math.max(...Object.values(allTags));
+  const minCount = Math.min(...Object.values(allTags));
+  const tagLevels = 5;
+  if (maxCount === minCount) return tagLevels;
+  return Math.ceil(((count - minCount) / (maxCount - minCount)) * (tagLevels - 1) + 1);
+}
+
+// Generowanie autorów
+function generateAuthors() {
+  let allAuthors = {};
+  const articles = document.querySelectorAll(optArticleSelector);
+
+  for (let article of articles) {
+    const authorWrapper = article.querySelector(optArticleAuthorSelector);
+    if (!authorWrapper) continue;
+
+    const authorName = article.getAttribute('data-author');
+    if (!authorName) continue;
+
+    const authorLinkHTML = `<a href="#author-${authorName}">${authorName}</a>`;
+    authorWrapper.innerHTML = `By: ${authorLinkHTML}`;
+
+    allAuthors[authorName] = (allAuthors[authorName] || 0) + 1;
+  }
+
+  generateAuthorList(allAuthors);
+}
+
+// Generowanie listy autorów
+function generateAuthorList(allAuthors) {
+  const authorList = document.querySelector('.authors.list');
+  if (!authorList) {
+    console.error('Nie znaleziono elementu .authors.list');
+    return;
+  }
+
+  let allAuthorsHTML = '';
+
+  for (let author in allAuthors) {
+    allAuthorsHTML += `<li><a href="#author-${author}">${author} (${allAuthors[author]})</a></li>`;
+  }
+
+  authorList.innerHTML = allAuthorsHTML.trim();
+}
+
+// Obsługa kliknięć w autorów
+function authorClickHandler(event) {
+  event.preventDefault();
+  const clickedElement = this;
+  const href = clickedElement.getAttribute('href');
+  const author = href.replace('#author-', '');
+  
+  generateTitleLinks(`[data-author="${author}"]`);
+}
+
+// Dodawanie obsługi kliknięć do autorów
+function addClickListenersToAuthors() {
+  const authorLinks = document.querySelectorAll('.authors.list a, .post-author a');
+  for (let link of authorLinks) {
+    link.addEventListener('click', authorClickHandler);
+  }
+}
+
+// Inicjalizacja po załadowaniu strony
+document.addEventListener('DOMContentLoaded', function () {
+  generateTitleLinks();
+  generateTags();
+  generateAuthors();
+  addClickListenersToAuthors();
+});
