@@ -281,7 +281,7 @@ function generateAuthors(){
     if(!Object.prototype.hasOwnProperty.call(allAuthors, author)){
       allAuthors[author]=1;
     } else {
-      allAuthors[author]++
+      allAuthors[author]++;
     }
   }
 
